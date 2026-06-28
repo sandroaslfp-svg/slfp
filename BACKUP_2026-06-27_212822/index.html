@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SLFP">
+  <meta name="apple-touch-fullscreen" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Thème et couleur -->
+  <meta name="theme-color" content="#0052A5">
+  <meta name="msapplication-TileColor" content="#0052A5">
+  
+  <!-- Description -->
+  <meta name="description" content="Fiches syndicales SLFP - Règlements, Réformes, Lois, Plans CRAC et Oxygène">
+  
+  <!-- Titre -->
+  <title>SLFP - Fiches</title>
+  
+  <!-- Manifest PWA -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Icônes iOS -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="icon-76.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="icon-60.png">
+  
+  <!-- Splash Screens iPhone -->
+  <link rel="apple-touch-startup-image" href="splash-320x568.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="splash-375x667.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="splash-414x736.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="splash-390x844.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="splash-430x932.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="splash-393x852.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="splash-440x932.png" media="(device-width: 440px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+  <!-- Blue band navigation -->
+  <nav class="roi-band" id="roiBand">
+    <button class="roi-band-header" id="homeMainBtn" title="Accueil">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+    </button>
+    <div class="roi-band-buttons" id="roiButtons">
+      <button class="roi-btn" data-company="TIBI" title="TIBI" onclick="openCompanyFiche('TIBI')">
+        <img class="roi-btn-logo" src="tibi.png" alt="TIBI">
+        <span class="roi-btn-label" style="display:none">TIBI</span>
+      </button>
+      <button class="roi-btn" data-company="BEP" title="BEP" onclick="openCompanyFiche('BEP')">
+        <img class="roi-btn-logo" src="bep.png" alt="BEP">
+        <span class="roi-btn-label" style="display:none">BEP</span>
+      </button>
+      <button class="roi-btn" data-company="EGRETEC" title="EGRETEC" onclick="openCompanyFiche('EGRETEC')">
+        <img class="roi-btn-logo" src="IGRETEC.png" alt="EGRETEC">
+        <span class="roi-btn-label" style="display:none">EGRETEC</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PIN Modal -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-box">
+      <img class="pin-logo" src="logo-slfp.png" alt="SLFP">
+      <h2>Espace privé</h2>
+      <p class="pin-subtitle">Entrez le code d'accès</p>
+      <div class="pin-inputs" id="pinInputs">
+        <input type="password" class="pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+        <input type="password" class="pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+        <input type="password" class="pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+        <input type="password" class="pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      </div>
+      <p class="pin-error" id="pinError"></p>
+      <div id="pinLoginActions">
+        <button class="pin-submit" id="pinSubmit">Accéder</button>
+        <button class="pin-cancel" id="pinCancel">Annuler</button>
+        <button class="pin-change-btn" id="pinChangeBtn">Changer le code</button>
+        <button class="pin-change-btn" id="pinRequestBtn">Demander un accès</button>
+      </div>
+      <div id="pinChangeSection" style="display:none">
+        <p class="pin-subtitle">Nouveau code (4 chiffres)</p>
+        <div class="pin-inputs" id="newPinInputs">
+          <input type="password" class="pin-digit new-pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          <input type="password" class="pin-digit new-pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          <input type="password" class="pin-digit new-pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+          <input type="password" class="pin-digit new-pin-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+        </div>
+        <button class="pin-submit" id="pinSaveBtn">Enregistrer</button>
+        <button class="pin-cancel" id="pinCancelChange">Retour</button>
+      </div>
+      <div id="pinRequestSection" style="display:none">
+        <p class="pin-subtitle">Demander un accès privé</p>
+        <input type="text" id="requestName" placeholder="Votre nom" class="pin-request-input">
+        <input type="email" id="requestEmail" placeholder="Votre email" class="pin-request-input">
+        <textarea id="requestMessage" placeholder="Message (optionnel)" class="pin-request-input" rows="2"></textarea>
+        <p class="pin-error" id="requestResult"></p>
+        <button class="pin-submit" id="requestSubmit">Envoyer la demande</button>
+        <button class="pin-cancel" id="requestCancel">Retour</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App (always visible) -->
+  <header class="header">
+    <div class="header-content">
+      <img class="header-logo" src="logo-slfp.png" alt="SLFP">
+      <div class="header-text">
+        <h1 class="logo">SLFP</h1>
+        <p class="subtitle">Fiches syndicales</p>
+      </div>
+      <select id="filterSelect" class="header-filter">
+        <option value="all">Toutes</option>
+        <option value="reglement">Règlements</option>
+        <option value="reforme">Réformes</option>
+        <option value="loi">Lois</option>
+        <option value="plans-divers">Plans divers</option>
+        <option value="suivi">Commune / Entreprise en suivi</option>
+      </select>
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Rechercher..." class="search-input">
+      </div>
+      <button class="admin-btn-header" id="adminBtn" style="display:none" title="Administration">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+        </svg>
+      </button>
+      <button class="admin-btn-header" id="privateBtn" title="Espace privé">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content" id="mainContent">
+    <div class="cards-container" id="cardsContainer">
+      <!-- Les fiches seront injectées ici -->
+    </div>
+  </main>
+
+
+  <div class="pagination" id="pagination"></div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div class="modal-content" id="modalContent">
+        <!-- Contenu de la fiche détaillée -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Cloud Modal -->
+  <div class="update-modal-overlay" id="updateModalOverlay">
+    <div class="update-modal">
+      <div class="update-modal-header">
+        <h3>Mettre à jour le cloud</h3>
+        <button class="update-modal-close" id="updateModalClose">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="update-modal-content">
+        <div class="update-simple">
+          <div class="update-folder-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <h4>Mettre à jour le site</h4>
+          <p class="update-description">Cliquez ci-dessous et sélectionnez votre dossier :</p>
+          
+          <button class="update-auto-btn" id="updateAutoBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Sélectionner le dossier et envoyer
+          </button>
+          <input type="file" id="updateFolderInput" webkitdirectory directory multiple class="file-input-hidden">
+
+          <div class="update-progress-simple" id="updateProgressSimple" style="display:none;">
+            <div class="update-spinner"></div>
+            <p id="updateStatusSimple">Envoi en cours...</p>
+          </div>
+
+          <div class="update-result-simple" id="updateResultSimple" style="display:none;">
+            <div class="update-success-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <p class="update-success-text">Site mis à jour !</p>
+            <p class="update-url" id="updateUrlDisplay">https://mellow-jelly-ba7bd6.netlify.app</p>
+            <button class="update-ok-btn" id="updateOkBtn">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-header">
+      <button class="close-admin" id="homeBtn" title="Accueil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </button>
+      <h2>Administration des fiches</h2>
+      <div class="admin-header-actions">
+        <button class="admin-add-btn" id="addFicheBtn" title="Nouvelle fiche">+</button>
+        <button class="cloud-mini-btn save" id="cloudSaveBtn" title="Sauver dans le cloud">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+        </button>
+        <button class="cloud-mini-btn backup" id="backupBtn" title="Sauvegarder sur ordinateur">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
+        <button class="cloud-mini-btn restore" id="restoreBtn" title="Restaurer une sauvegarde">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </button>
+        <button class="close-admin" id="closeAdmin" title="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="admin-content">
+      <div class="access-requests" id="accessRequests" style="display:none">
+        <h3 class="admin-section-title">Demandes d'accès</h3>
+        <div id="requestsList"></div>
+      </div>
+      <div class="fiche-list" id="ficheList">
+        <!-- Liste des fiches admin -->
+      </div>
+    </div>
+  </div>
+
+  <!-- PDF Viewer Modal -->
+  <div class="pdf-viewer-overlay" id="pdfViewerOverlay">
+    <div class="pdf-viewer-container">
+      <div class="pdf-viewer-header">
+        <h3 id="pdfViewerTitle">Document PDF</h3>
+        <button class="pdf-viewer-close" id="pdfViewerClose">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="pdf-viewer-content">
+        <iframe id="pdfViewerIframe" src=""></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-modal-overlay" id="adminModalOverlay">
+    <div class="admin-modal" id="adminModal">
+      <div class="admin-modal-header">
+        <h3 id="adminModalTitle">Nouvelle fiche</h3>
+        <button class="admin-modal-close" id="adminModalClose">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="fiche-form" id="ficheForm">
+        <input type="hidden" id="ficheId">
+        <input type="hidden" id="removePdfFlag" value="false">
+        <div class="form-group">
+          <label for="ficheTitre">Titre</label>
+          <input type="text" id="ficheTitre">
+        </div>
+        <div class="form-group">
+          <label for="ficheSociete">Société</label>
+          <input type="text" id="ficheSociete">
+        </div>
+        <div class="form-group">
+          <label for="ficheType">Type</label>
+          <select id="ficheType">
+            <option value="reglement">Règlement travail</option>
+            <option value="reforme">Réforme</option>
+            <option value="loi">Loi</option>
+            <option value="plans-divers">Plans divers</option>
+            <option value="suivi">Commune / Entreprise en suivi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ficheImage">Image d'illustration</label>
+          <div class="image-upload-container">
+            <div class="image-preview" id="imagePreview">
+              <img src="" alt="Aperçu" id="imagePreviewImg" style="display:none;">
+              <span class="image-placeholder" id="imagePlaceholder">Pas d'image</span>
+            </div>
+            <div class="image-upload-actions">
+              <label class="upload-option">
+                <input type="file" id="ficheImageFile" accept="image/*" class="file-input-hidden">
+                <span class="upload-option-btn small">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  Ordinateur
+                </span>
+              </label>
+              <input type="url" id="ficheImage" placeholder="Ou URL de l'image" class="url-input">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ficheLogo">Logo (pour boutons du bandeau)</label>
+          <div class="image-upload-container">
+            <div class="image-upload-actions">
+              <label class="upload-option">
+                <input type="file" id="ficheLogoFile" accept="image/*" class="file-input-hidden">
+                <span class="upload-option-btn small">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  Ordinateur
+                </span>
+              </label>
+              <input type="url" id="ficheLogo" placeholder="Ou URL du logo" class="url-input">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ficheContenu">Contenu</label>
+          <div class="editor-container">
+            <div class="editor-toolbar" id="editorToolbar">
+              <button type="button" class="editor-btn" data-cmd="bold" title="Gras"><b>G</b></button>
+              <button type="button" class="editor-btn" data-cmd="italic" title="Italique"><i>I</i></button>
+              <button type="button" class="editor-btn" data-cmd="underline" title="Souligné"><u>S</u></button>
+              <span class="editor-sep"></span>
+              <button type="button" class="editor-btn" data-cmd="formatBlock" data-val="H1" title="Titre 1">H1</button>
+              <button type="button" class="editor-btn" data-cmd="formatBlock" data-val="H2" title="Titre 2">H2</button>
+              <button type="button" class="editor-btn" data-cmd="formatBlock" data-val="H3" title="Titre 3">H3</button>
+              <button type="button" class="editor-btn" data-cmd="formatBlock" data-val="P" title="Paragraphe">P</button>
+              <span class="editor-sep"></span>
+              <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Liste à puces">&#8226;</button>
+              <button type="button" class="editor-btn" data-cmd="insertOrderedList" title="Liste numérotée">1.</button>
+              <span class="editor-sep"></span>
+              <button type="button" class="editor-btn" data-cmd="createLink" title="Lien">🔗</button>
+              <button type="button" class="editor-btn" data-cmd="removeFormat" title="Effacer le format">✕</button>
+              <span class="editor-sep"></span>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#0052A5" title="Bleu" style="color:#0052A5">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#D97706" title="Orange" style="color:#D97706">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#DC2626" title="Rouge" style="color:#DC2626">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#059669" title="Vert" style="color:#059669">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#7C3AED" title="Violet" style="color:#7C3AED">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#1F2937" title="Noir" style="color:#1F2937">A</button>
+            </div>
+            <div class="editor-content" id="ficheContenu" contenteditable="true"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ficheVilles">Villes concernées (séparées par virgule)</label>
+          <input type="text" id="ficheVilles" placeholder="Paris, Lyon, Marseille">
+        </div>
+        <div class="form-group">
+          <label for="ficheResume">Résumé</label>
+          <div class="editor-container">
+            <div class="editor-toolbar" id="resumeToolbar">
+              <button type="button" class="editor-btn" data-cmd="bold" title="Gras"><b>G</b></button>
+              <button type="button" class="editor-btn" data-cmd="italic" title="Italique"><i>I</i></button>
+              <button type="button" class="editor-btn" data-cmd="underline" title="Souligné"><u>S</u></button>
+              <span class="editor-sep"></span>
+              <button type="button" class="editor-btn" data-cmd="formatBlock" data-val="H2" title="Titre">H2</button>
+              <button type="button" class="editor-btn" data-cmd="formatBlock" data-val="P" title="Paragraphe">P</button>
+              <span class="editor-sep"></span>
+              <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Liste">&#8226;</button>
+              <button type="button" class="editor-btn" data-cmd="createLink" title="Lien">🔗</button>
+              <button type="button" class="editor-btn" data-cmd="removeFormat" title="Effacer le format">✕</button>
+              <span class="editor-sep"></span>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#0052A5" title="Bleu" style="color:#0052A5">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#D97706" title="Orange" style="color:#D97706">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#DC2626" title="Rouge" style="color:#DC2626">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#059669" title="Vert" style="color:#059669">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#7C3AED" title="Violet" style="color:#7C3AED">A</button>
+              <button type="button" class="editor-btn color-btn" data-cmd="foreColor" data-val="#1F2937" title="Noir" style="color:#1F2937">A</button>
+            </div>
+            <div class="editor-content" id="ficheResume" contenteditable="true"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ficheGoogleDriveLinkNom">Nom du document PDF</label>
+          <input type="text" id="ficheGoogleDriveLinkNom" placeholder="Ex: Rapport annuel 2025" class="url-input">
+        </div>
+        <div class="form-group">
+          <label for="ficheGoogleDriveLink">Lien PDF externe (Google Drive, etc.)</label>
+          <input type="url" id="ficheGoogleDriveLink" placeholder="https://drive.google.com/..." class="url-input">
+        </div>
+        <div class="form-group">
+          <label>🔗 Liens utiles</label>
+          <div id="liensList" class="pdf-list"></div>
+          <button type="button" class="add-pdf-btn" id="addLienBtn">+ Ajouter un lien</button>
+        </div>
+        <div class="form-group">
+          <label>Documents PDF</label>
+          <div id="pdfList" class="pdf-list"></div>
+          <button type="button" class="add-pdf-btn" id="addPdfBtn">+ Ajouter un PDF</button>
+          <div id="pdfInfo"></div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" id="cancelForm">Annuler</button>
+          <button type="button" class="save-btn" onclick="handleFormSubmit()">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
