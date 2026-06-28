@@ -929,9 +929,23 @@ function setupEventListeners() {
   document.getElementById('filterSelect').addEventListener('change', handleFilter);
 
   document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalCloseBottom').addEventListener('click', closeModal);
   document.getElementById('modalOverlay').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeModal();
   });
+
+  // Touch swipe-down to close on mobile
+  var touchStartY = 0;
+  document.getElementById('modal').addEventListener('touchstart', function(e) {
+    if (this.scrollTop === 0) touchStartY = e.touches[0].clientY;
+    else touchStartY = 0;
+  }, { passive: true });
+  document.getElementById('modal').addEventListener('touchmove', function(e) {
+    if (touchStartY > 0 && e.touches[0].clientY - touchStartY > 80) {
+      touchStartY = 0;
+      closeModal();
+    }
+  }, { passive: true });
 
   document.getElementById('adminBtn').addEventListener('click', openAdmin);
   document.getElementById('closeAdmin').addEventListener('click', closeAdmin);
