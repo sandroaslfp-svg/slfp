@@ -40,7 +40,7 @@ let isPrivate = false;
 const isMobile = window.innerWidth <= 480;
 
 function initPinModal() {
-  if (isMobile || sessionStorage.getItem('slfp_auth')) {
+  if (sessionStorage.getItem('slfp_auth')) {
     isPrivate = true;
     onPrivateMode();
   }
