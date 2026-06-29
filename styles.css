@@ -1022,8 +1022,13 @@ body {
   flex-direction: column;
 }
 
+@media (max-width: 480px) {
+  .modal { margin-left: 60px; width: calc(100% - 60px); border-radius: 16px 0 0 0; }
+  .modal-suivi { border-radius: 0; }
+}
+
 @media (max-width: 360px) {
-  .modal { border-radius: 16px 16px 0 0; }
+  .modal { border-radius: 16px 0 0 0; }
 }
 
 @keyframes slideUp {
@@ -1070,13 +1075,7 @@ body {
   flex: 1;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 0 8px 60px;
-}
-
-@media (max-width: 480px) {
-  .modal-content {
-    padding-left: 56px;
-  }
+  padding: 12px 8px 60px;
 }
 
 /* Bottom close button for mobile */
