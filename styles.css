@@ -1023,6 +1023,7 @@ body {
 }
 
 @media (max-width: 480px) {
+  .modal-overlay { justify-content: flex-start; }
   .modal { margin-left: 60px; width: calc(100% - 60px); border-radius: 16px 0 0 0; }
   .modal-suivi { border-radius: 0; }
 }
